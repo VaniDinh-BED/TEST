@@ -75,9 +75,9 @@ function padWithLeadingZeros(num, totalLength) {
 function formatString(str){
   var _str = str
   .toLowerCase()
-  .replaceAll(' ', '') // Remove all spaces in string
-  .replaceAll('-', '')  // Remove all spaces in string
-  .replaceAll(`'`, ''); // Remove all spaces in string
+  .replace(/ /g, '') // Remove all spaces in string
+  .replace(/-/g, '')  // Remove all spaces in string
+  .replace(/'/g, ''); // Remove all spaces in string
 
   _str = toNonAccentVietnamese(_str); // Remove Accents
 
@@ -89,13 +89,13 @@ function isQualStringWithRule(str1, str2) {
   try {
     var _str1 = str1
     .toLowerCase()
-    .replaceAll(' ', ''); // Remove all spaces in string
+    .replace(/ /g, ''); // Remove all spaces in string
 
     _str1 = toNonAccentVietnamese(_str1); // Remove Accents
 
     var _str2 = str2
       .toLowerCase()
-      .replaceAll(' ', ''); // Remove all spaces in string
+      .replaceAll(/ /g, ''); // Remove all spaces in string
 
     _str2 = toNonAccentVietnamese(_str2); // Remove Accents
 

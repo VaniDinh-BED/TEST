@@ -11,26 +11,38 @@ const PostOfficeSchema = new Schema(
             type: String,
             required: true
         },
-        name : {
+        name: {
             type: String,
             required: true
         },
-        province : {
+        province: {
             type: String,
             required: true
         },
-        district : {
+        district: {
             type: String,
             required: true
         },
         address: {
             type: String,
             required: true
-        }
+        },
+        inventory_number: {
+            type: String,
+        },
+        inventory_weight: {
+            type: String,
+        },
+        inventory_carrying_cost: {
+            type: String,
+        },
+        inventory_COD: {
+            type: String,
+        },
 
     },
-    { 
-        timestamps: true ,
+    {
+        timestamps: true,
     }
 )
 

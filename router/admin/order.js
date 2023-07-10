@@ -1,18 +1,11 @@
 import express from "express"
 import { sendError, sendServerError, sendSuccess, } from "../../helper/client.js"
-import { createOrderValidate, updateOrderStatusValidate } from "../../validation/order.js"
-import { verifyAdmin, verifyCustomer, verifyToken } from "../../middleware/index.js"
-import { canChangeOrderStatus, genarateOrderID, genarateBillofLandingID, getOrderWithFilters, generateRoute, handleOrderInfo } from "../../service/order.js"
+import { updateOrderStatusValidate, updateOrderTrackingValidate } from "../../validation/order.js"
+import { canChangeOrderStatus, genarateOrderID, genarateBillofLandingID, getOrderWithFilters } from "../../service/order.js"
 import DeliveryService from "../../model/DeliveryService.js"
 import Order from "../../model/Order.js"
-import Customer from "../../model/Customer.js"
 import Product from "../../model/Product.js"
-import { locateAddress } from "../../service/location.js"
-import Warehouse from "../../model/Warehouse.js"
 import { CASH_PAYMENT, COD_STATUS, ORDER_STATUS } from "../../constant.js"
-import { isServedByService } from "../../service/deliveryService.js"
-import Department from "../../model/Department.js"
-import CarFleet from "../../model/CarFleet.js"
 import CompareReview from "../../model/CompareReview.js"
 import { COMPARE_REVIEW_TYPE, SCAN_TYPE } from "../../constant.js"
 import { getDateWhenEditSchedule } from "../../service/compareReview.js"
@@ -221,30 +214,6 @@ orderAdminRoute.get('/profit/:Id', async (req, res) => {
 })
 
 /**
- * @route GET /api/admin/order/customer/:customerId
- * @description get order of customer by admin role
- * @access private
- */
-orderAdminRoute.get('/customer/:customerId', async (req, res) => {
-  try {
-    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 0
-    const page = req.query.page ? parseInt(req.query.page) : 0
-    const { sortBy } = req.query
-    const { customerId } = await req.params
-    const orders = await Promise.all((await Order.find({ customer: customerId })
-      .skip(pageSize * page)
-      .limit(pageSize)
-      .sort(sortBy)
-      .select('-__v')).map(async order => await handleOrderInfo(order)))
-    const length = await Order.find({ customer: customerId }).count()
-    return sendSuccess(res, 'get order successfully', { length, orders })
-  } catch (error) {
-    console.log(error)
-    return sendServerError(res)
-  }
-})
-
-/**
  * @route POST /api/admin/order
  * @description admin create a new order
  * @access private
@@ -252,56 +221,10 @@ orderAdminRoute.get('/customer/:customerId', async (req, res) => {
 orderAdminRoute.post('/:customerId', async (req, res) => {
   try {
     const customerId = req.params.customerId
-    // const errors = createOrderValidate(req.body)
-    // if (errors) return sendError(res, errors)
-
-    // const customerId = await Customer.exists({ _id: req.params.customerId })
-    // if (!customerId) return sendError(res, "Customer does not exist.")
-
     const { sender, receiver, product, confirm_staff, pickUp_staff, delivery_staff, shipping } = req.body
-
-    // // check whether service is available
-    // const serviceObj = await DeliveryService.findOne({ name: service })
-    // if (!serviceObj) return sendError(res, "Delivery service is not available.")
-
-    // let province = null
-    // let endprovince = null;
-    // // check whether address is real or not
-    // if (typeof origin.address === 'object') {
-    //   let data = await locateAddress(origin.address.street + origin.address.ward + origin.address.district + origin.address.province)
-    //   if (!data) return sendError(res, 'Origin is not existing.')
-    //   province = origin.address.province
-    // }
-    // else {
-    //   const originWh = await Warehouse.findById(origin.address).select({ _id: 1, province: 1 })
-    //   origin.address = originWh._id
-    //   province = originWh.province
-    //   if (!origin.address) return sendError(res, "Origin warehouse doesn't exist.")
-    // }
-
-    // if (typeof destination.address === 'object') {
-    //   let data = await locateAddress(destination.address.street + destination.address.ward + destination.address.district + destination.address.province)
-    //   if (!data) return sendError(res, 'Destination is not existing.')
-    //   endprovince = destination.address.province
-    // }
-    // else {
-    //   const destinationWh = await Warehouse.findById(destination.address).select({ _id: 1, province: 1 })
-    //   destination.address = destinationWh._id
-    //   endprovince = destinationWh.province
-    //   if (!destination.address) return sendError(res, "Destination warehouse doesn't exist.")
-    // }
-    // if (!(await isServedByService(serviceObj, province, endprovince)))
-    //   return sendError(res, "No available service serve this route.")
-
     const orderId = await genarateOrderID()
     const bill_of_landing = await genarateBillofLandingID()
     const order = await Order.create({ orderId, customer: customerId, sender, receiver, product, cod: { cod: "0", fee: "0", control_money: "0" }, confirm_staff, pickUp_staff, delivery_staff, shipping: { id: bill_of_landing, ...shipping } })
-
-    // products.forEach(async product => {
-    //   const { name, types, goods_value, other, quantity, weight, unit, note, service } = product
-    //   await Product.create({ name, types, goods_value, other, quantity, weight, unit, note, service, order: order._id })
-    // })
-
     return sendSuccess(res, 'Create new order successfully', { orderId: order.orderId })
   } catch (error) {
     console.log(error)
@@ -420,164 +343,70 @@ orderAdminRoute.put("/:orderId/status/change", async (req, res) => {
 });
 
 /**
- * @route PUT /api/admin/order/:orderId/route
- * @description update route of an order by orderId
- * @access private
- */
-orderAdminRoute.put("/:orderId/route", async (req, res) => {
-  const { orderId } = req.params;
-  try {
-    const order = await handleOrderInfo(await Order.findOne({ orderId }));
-    if (!order) return sendError(res, "Order does not exist.", 404);
-    const route = await generateRoute(
-      { _id: order.service },
-      order.origin,
-      order.destination
-    );
-    await Order.findOneAndUpdate({ orderId }, { route });
-    const returnRoute = (await Order.findOne({ orderId }).populate("route"))
-      .route;
-    return sendSuccess(
-      res,
-      "Genarate transportation route successfully.",
-      returnRoute
-    );
-  } catch (error) {
-    console.log(error);
-    return sendServerError(res);
-  }
-});
-
-/**
- * @route PUT /api/admin/order/tracking/orderId
- * @description update tracking of an order by orderId
- * @access private
- */
-orderAdminRoute.put("/tracking/:orderId", async (req, res) => {
-  try {
-    const { orderId } = await req.params;
-    const area = await req.body
-    const order = await Order.findOne({ orderId })
-    if (!order) return sendError(res, "Order does not exist.", 404)
-    order.tracking.push(area)
-    await Order.findOneAndUpdate({ orderId }, { tracking: order.tracking });
-    return sendSuccess(
-      res, "successfully.", order
-    )
-  } catch (error) {
-    console.log(error);
-    return sendServerError(res)
-  }
-})
-
-/**
- * @route PUT /api/admin/order/COD/orderId
- * @description update cod of an order by orderId
- * @access private
- */
-orderAdminRoute.put("/COD/:orderId", async (req, res) => {
-  try {
-    const { orderId } = await req.params
-    const isExist = await Order.exists({ orderId: orderId })
-    if (isExist) {
-      const cod = await req.body.cod
-      await Order.findOneAndUpdate({ orderId }, { cod: cod });
-      return sendSuccess(res, "update cod successfully.")
-    }
-    return sendError(res, "update cod failed.")
-  } catch (error) {
-    console.log(error);
-    return sendServerError(res)
-  }
-})
-
-/**
- * @route GET /api/admin/order/list-order/:customerId
- * @description update route of an order by orderId
- * @access private
- */
-orderAdminRoute.get("/list-order/:customerId", async (req, res) => {
-  let customerId = req.params.customerId;
-
-  try {
-    const ordersOfCustomer = await Customer.findOne({
-      _id: customerId,
-    }).populate("orders");
-    if (!ordersOfCustomer) {
-      return sendError(res, "Customer does not exist.");
-    }
-
-    if (ordersOfCustomer.orders.length < 1) {
-      return sendError(res, "Customer does not have any order.");
-    }
-    return sendSuccess(res, undefined, {
-      ordersByCustomer: ordersOfCustomer.orders,
-    });
-  } catch (err) {
-    console.log(err);
-    sendServerError(res);
-  }
-});
-
-/**
- * @route GET /api/admin/order/history-order/:customerId
- * @description update route of an order by orderId
- * @access private
- */
-orderAdminRoute.get("/history-order/:customerId", async (req, res) => {
-  let customerId = req.params.customerId;
-
-  try {
-    const ordersOfCustomer = await Customer.findOne({
-      _id: customerId,
-    }).populate({ path: 'orders', select: 'orderId totalPrice status createdAt' });
-
-    if (!ordersOfCustomer) {
-      return sendError(res, "Customer does not exist.");
-    }
-    if (ordersOfCustomer?.orders?.length < 1) {
-      return sendError(res, "Customer does not have any order.");
-    }
-    return sendSuccess(res, 'Success', {
-      totalOrders: ordersOfCustomer?.orders?.length,
-      historyOrders: ordersOfCustomer.orders,
-    })
-  } catch (err) {
-    console.log(err);
-    sendServerError(res);
-  }
-});
-
-/**
- * @route PATCH /api/admin/order/tracking/scan-sending/orderId
+ * @route PATCH /api/admin/order/scan/orderId
  * @description admin update tracking of an order by orderId
  * @access private
  */
-orderAdminRoute.patch("/tracking/scan-sending/:orderId", async (req, res) => {
+orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
   try {
+    const errors = updateOrderTrackingValidate(req.body);
+    if (errors) return sendError(res, errors);
+
     const staffId = req.user.role._id;
-    const {
-      scan_code_time,
-      transportion,
-      post_office_sending,
-      warehouse_sending, } = req.body;
+
+    const scan_body = {
+      ...req.body,
+      confirm_staff : staffId,
+    }
+
+    /* scan_body format after validation above
+        scan_type :  requried  
+        scan_code_time : requried
+        confirm_staff : requried
+
+        transportation : only SCAN_TYPE.RECIVED_ORDER not requried 
+
+        driver : requried when scan_type = 
+              SCAN_TYPE.SENDING_POSTOFFICE/SCAN_TYPE.RECEIVING_POSTOFFICE
+              SCAN_TYPE.SENDING_WAREHOUSE/SCAN_TYPE.RECEIVING_WAREHOUSE
+              
+        warehouse : requried when scan_type = 
+              SCAN_TYPE.SENDING_WAREHOUSE/SCAN_TYPE.RECEIVING_WAREHOUSE
+
+        shipper : requried when scan_type = SCAN_TYPE.SENDING_POSTOFFICE
+    */
+    
 
     const { orderId } = req.params;
 
-    const scan_body = {
-      types: SCAN_TYPE.SENDING,
-      scan_code_time: scan_code_time,
-      transportion: transportion,
-      post_office_sending: post_office_sending,
-      warehouse_sending: warehouse_sending,
-      staff_scan: staffId,
-    };
-
+  
     const order = await Order.findOne({ orderId })
     if (!order) return sendError(res, "Order does not exist.", 404)
-    order.tracking.push(scan_body)
 
-    await Order.findOneAndUpdate({ orderId }, { tracking: order.tracking });
+    // Update last tracking if have same scan_type and confirm_staff
+    // else add new in tracking
+    if (order.tracking == undefined) {
+      order.tracking = [];
+      order.tracking.push(scan_body);
+    }
+    else {
+      const lenTrackings = order.tracking.length;
+      if (lenTrackings == 0) {
+        order.tracking.push(scan_body);
+      } 
+      else {
+        if (order.tracking[lenTrackings - 1].scan_type == scan_body.scan_type && 
+          order.tracking[lenTrackings - 1].confirm_staff == scan_body.confirm_staff){
+            order.tracking[lenTrackings - 1] = scan_body;
+          }
+        else {
+          order.tracking.push(scan_body);
+        }
+      }
+    }
+    
+    await Order.findOneAndUpdate({orderId}, {tracking : order.tracking});
+
     return sendSuccess(
       res, "successfully.", order
     )
@@ -588,40 +417,7 @@ orderAdminRoute.patch("/tracking/scan-sending/:orderId", async (req, res) => {
 })
 
 
-/**
- * @route PATCH /api/admin/order/tracking/scan-incoming/orderId
- * @description admin update tracking of an order by orderId
- * @access private
- */
-orderAdminRoute.patch("/tracking/scan-incoming/:orderId", async (req, res) => {
-  try {
-    const staffId = req.user.role._id;
-    const {
-      scan_code_time,
-      transportion, } = req.body;
 
-    const { orderId } = req.params;
-
-    const scan_body = {
-      types: SCAN_TYPE.INCOMING,
-      scan_code_time: scan_code_time,
-      transportion: transportion,
-      staff_scan: staffId,
-    };
-
-    const order = await Order.findOne({ orderId })
-    if (!order) return sendError(res, "Order does not exist.", 404)
-    order.tracking.push(scan_body)
-
-    await Order.findOneAndUpdate({ orderId }, { tracking: order.tracking });
-    return sendSuccess(
-      res, "successfully.", order
-    )
-  } catch (error) {
-    console.log(error);
-    return sendServerError(res)
-  }
-})
 /**
 * @route PUT /api/admin/order/finance/cod/collecting
 * @description get cod not collected
@@ -878,13 +674,13 @@ orderAdminRoute.get('/finance/cod', async (req, res) => {
         };
       } else {
         acc[delivery_staff._id].moneyPP += cash_payment === CASH_PAYMENT.PP_CASH ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) : 0,
-        acc[delivery_staff._id].moneyCC += cash_payment === CASH_PAYMENT.CC_CASH ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) : 0,
-        acc[delivery_staff._id].cod += parseInt(cod.cod),
-        acc[delivery_staff._id].total += (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) + parseInt(cod.cod),
-        acc[delivery_staff._id].moneyCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_cashier ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) : 0,
-        acc[delivery_staff._id].notCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_shipper ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) + parseInt(cod.cod) : 0,
-        acc[delivery_staff._id].count += 1,
-        acc[delivery_staff._id].codCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_cashier ? parseInt(cod.cod) : 0
+          acc[delivery_staff._id].moneyCC += cash_payment === CASH_PAYMENT.CC_CASH ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) : 0,
+          acc[delivery_staff._id].cod += parseInt(cod.cod),
+          acc[delivery_staff._id].total += (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) + parseInt(cod.cod),
+          acc[delivery_staff._id].moneyCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_cashier ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) : 0,
+          acc[delivery_staff._id].notCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_shipper ? (shipping.total_amount_after_tax_and_discount ? parseInt(shipping.total_amount_after_tax_and_discount) : 0) + parseInt(cod.cod) : 0,
+          acc[delivery_staff._id].count += 1,
+          acc[delivery_staff._id].codCollected += lastTimeLineCodStatus.status === COD_STATUS.collected_cashier ? parseInt(cod.cod) : 0
       }
       return acc;
     }, {});

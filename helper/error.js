@@ -65,6 +65,25 @@ export default class Error {
                 this.appendError(`system does not understand value of ${field}.`)
         return this
     }
+    
+    /**
+     * @param field: field to validate
+     * @param range: range of values which field belong to
+     * @param name: name of values which field belong to
+     * @returns this
+     */
+    isInRangeName(field, range, name) {
+        var str_range = '';
+        for (var i in range) 
+            str_range += ` "${range[i]}",`
+        if (field)
+            if (!Object.values(range).includes(field)){
+                this.appendError(`Field ${name} : `)
+                this.appendError(`  System does not understand value of ${field}`)
+                this.appendError(`  Try these values : [${str_range}]`)
+            }
+        return this
+    }
 
     /**
      * @param field: field to validate

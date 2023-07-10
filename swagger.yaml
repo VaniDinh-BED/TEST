@@ -39,8 +39,6 @@ tags:
   description: "Endpoint Road"
 - name: "bill"
   description: "Endpoint Bill"
-- name: "product-shipment"
-  description: "Endpoint Product Shipment"
 - name: "participant"
   description: "Endpoint Participant"
 - name: "quote"
@@ -4456,151 +4454,6 @@ paths:
             }
       security:
         - bearerAuth: []
-  /admin/product-shipment:
-    get:
-      tags:
-        - "product-shipment"
-      summary: get product-shipment
-      produces:
-        - application/json
-      parameters:
-        - in: query
-          name: pageSize
-          type: string
-          description: limit number of bill on a page
-        - in: query
-          name: page
-          type: string
-          description: num of page
-        - in: query
-          name: sortBy
-          type: string
-          description: sort by
-        - in: query
-          name: product_id
-          type: string
-          description:  product_id
-      responses:
-        200:
-          description: get product shipment successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "Get product shipment information successfully",
-              "data": {
-                "length": "number",
-                "listProductShipment": [
-                  {
-                    "_id": "id",
-                    "quantity": "number",
-                    "value": "number",
-                    "product_name": "string",
-                  },
-                ]
-              }
-            }
-        400:
-          description: product shipment in not found.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "No information found.",
-            }
-      security:
-        - bearerAuth: []
-  /admin/product-shipment/{id}:
-    get:
-      tags:
-        - "product-shipment"
-      summary: get product-shipment by id
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: id
-          type: string
-          required: true
-          description: Id of a product-shipment 
-      responses:
-        200:
-          description: get product-shipment successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "Get product shipment successfully.",
-              "data": {
-                "_id": "id",
-                "quantity": "number",
-                "value": "number",
-              }
-            }
-        400:
-          description: product-shipmentID is not found. 
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "No information found.",
-            }
-      security:
-        - bearerAuth: []
-  /admin/product-shipment/product/{product_id}:
-    post:
-      tags:
-        - "product-shipment"
-      summary: "Create information of product shipment"
-      consumes:
-        - application/json
-      parameters:
-        - in: path
-          name: product_id
-          type: string
-          required: true
-          description: Id of an product
-        - in: body
-          name: product-shipment
-          description: a new product-shipment.
-          schema:
-            type: object
-            properties:
-              quantity:
-                type: array
-                items:
-                  type: number
-      responses:
-        200:
-          description: Set product shipment information successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "Create shipments successfully.",
-              "data": { "status": "already" }
-            }
-        400:
-          description: Create product shipment failed.
-          schema:
-            type: object
-            example: {
-              "error1": {
-                "success": false,
-                "message": "Product id is not existed.",
-              },
-              "error2": {
-                "success": false,
-                "message": "Can not divide the quantity of a product when the order is not waiting status.",
-              },
-              "error3": {
-                "success": false,
-                "message": "Creating shipments is failed.",
-              }
-            }
-      security:
-        - bearerAuth: []
-
   /admin/bill:
     get:
       tags:
@@ -7077,7 +6930,7 @@ paths:
             }
       security:
         - bearerAuth: []
-  /admin/order/tracking/scan-sending/{orderId}:
+  /admin/order/tracking/scan/{orderId}:
      patch: 
       tags:
         - "order"
@@ -7096,71 +6949,32 @@ paths:
           schema :
             type : object
             properties:
-              transportion:
+              scan_type : 
                 type : string
-                description: transportion
+                description: scan_type
                 example: "string"
-                enum: ['truck', 'boat', 'plane']
+                enum: ['recived_order','sending_postoffice','incoming_postoffice','sending_warehouse','incoming_warehouse','shipping']
+              transportation:
+                type : string
+                description: transportation
+                example: "string ; only scan_type = recived_order not required"
+                enum: ['truck', 'boat', 'plane' , 'motorbike']
               scan_code_time:
                 type : string
                 description: time to action
                 example: "string"
-              warehouse_sending:
+              warehouse:
                 type : string
                 description: id of warehouse
-                example: "string"
-              post_office_sending:
+                example: "string ; required when action in warehouse"
+              driver:
                 type : string
-                description: id of post office
-                example: "string"
-      responses:
-        200:
-          description: admin update tracking of an order by orderId successfully.
-          schema:
-            type: object
-            example: {
-             
-            }          
-        400:
-          description: The order ${orderId} does not exist.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "The order ${orderId} does not exist.",
-            }
-      security:
-        - bearerAuth: []
-  /admin/order/tracking/scan-incoming/{orderId}:
-     patch: 
-      tags:
-        - "order"
-      summary: admin update tracking of an order by orderId
-      produces:
-        - application/json     
-      parameters:
-        - in: path
-          name: orderId
-          type: string
-          required: true
-          description: Id of a order 
-        - in: body
-          name: body
-          required: true
-          schema :
-            type : object
-            properties:
-              transportion:
+                description: id of driver
+                example: "string ; required when action send/receive"
+              shipper:
                 type : string
-                description: transportion
-                example: "string"
-                enum: ['truck', 'boat', 'plane']
-              scan_code_time:
-                type : string
-                description: time to action
-                example: "string"
-
-
+                description: id of shipper
+                example: "string ; required when scan_type = shipping"
       responses:
         200:
           description: admin update tracking of an order by orderId successfully.
@@ -7292,41 +7106,6 @@ paths:
               "success": false,
               "message": "Can not change the status of this order.",
             }    
-        404:
-          description: Order does not exist.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "Order does not exist.",
-            }
-      security:
-        - bearerAuth: []
-  /admin/order/{orderId}/route:
-    put:
-      tags:
-        - "order"
-      summary: Admin update route of an order by orderId
-      produces:
-        - application/json     
-      parameters:
-        - in: path
-          name: orderId
-          type: string
-          required: true
-          description: Id of a order 
-      responses:
-        200:
-          description: Genarate transportation route successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "Genarate transportation route successfully.",
-              "data": {
-                "route": ["warehouseId"]
-              }
-            }  
         404:
           description: Order does not exist.
           schema:
@@ -7863,113 +7642,6 @@ paths:
             example: {
               "success": false,
               "message": "Server Interval Error",
-            }
-      security:
-        - bearerAuth: []
-  /admin/order/tracking/{orderId}:
-    put: 
-      tags:
-        - "order"
-      summary: Admin update tracking
-      produces:
-        - application/json     
-      parameters:
-        - in: path
-          name: orderId
-          type: string
-          required: true
-          description: orderId of a order 
-        - in: body
-          name: tracking
-          description: current area of order
-          schema:
-            type: object
-            properties:
-              area:
-                type: string
-      responses:
-        200:
-          description: successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "successfully.",
-              "data":{}
-            }          
-        400:
-          description: failed.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "Failed.",
-            }
-        500:
-          description: Server Interval Error.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "Server Interval Error ",
-            }
-      security:
-        - bearerAuth: []
-  /admin/order/COD/{orderId}:
-    put: 
-      tags:
-        - "order"
-      summary: Admin update cod
-      produces:
-        - application/json     
-      parameters:
-        - in: path
-          name: orderId
-          type: string
-          required: true
-          description: orderId of a order 
-        - in: body
-          name: cod
-          description: cod
-          schema:
-            type: object
-            properties:              
-              cod:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  fee:
-                    type: string
-                  cod:
-                    type: string
-                  control_money:
-                    type: string
-      responses:
-        200:
-          description: successfully.
-          schema:
-            type: object
-            example: {
-              "success": true,
-              "message": "successfully.",
-              "data":{}
-            }          
-        400:
-          description: failed.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "Failed.",
-            }
-        500:
-          description: Server Interval Error.
-          schema:
-            type: object
-            example: {
-              "success": false,
-              "message": "Server Interval Error ",
             }
       security:
         - bearerAuth: []

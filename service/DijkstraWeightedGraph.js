@@ -1,6 +1,5 @@
-import Warehouse from "../model/Warehouse.js";
 import Road from "../model/Road.js"
-import { isServedByService } from "./deliveryService.js";
+
 
 class DijkstraWeightedGraph {
     constructor() {
@@ -118,56 +117,4 @@ class PriorityQueue {
     sort() {
         this.values.sort((a, b) => a.priority - b.priority);
     };
-}
-
-
-/**
- * find routes
- * @param {Warehouse} start
- * @param {Warehouse} finish
- * @returns {Array|null}
- */
-export const findRoutes = async (service, start, finish) => {
-    try {
-        const graph = new DijkstraWeightedGraph()
-
-        const whs = await Warehouse.find()
-        const vertices = whs.filter(async wh => await isServedByService(service, wh.province)).map(wh => wh._id.toString())
-
-        const rs = await Road.find().populate([
-            {
-                path: 'origin',
-                select: ['_id', 'province']
-            },
-            {
-                path: 'destination',
-                select: ['_id', 'province']
-            }
-        ])
-        const edges = rs.filter(async r => (await isServedByService(service, r.origin.province) && await isServedByService(service, r.destination.province)))
-        .map(r => {
-            return {
-                v1: r.origin._id.toString(),
-                v2: r.destination._id.toString(),
-                weigh: r.distance
-            }
-        })
-        // console.log(vertices)
-        // console.log(edges)
-
-        vertices.forEach(vertex => {
-            graph.addVertex(vertex)
-        })
-
-        edges.forEach(edge => {
-            graph.addEdge(edge.v1, edge.v2, edge.weigh)
-        })
-        const r = graph.Dijkstras(start, finish)
-        // console.log(r)
-        // graph.printGraph()
-        return r 
-    } catch (error) {
-        console.log(error)
-        return []
-    }
 }

@@ -1,13 +1,12 @@
 import express from "express";
 import { sendError, sendServerError, sendSuccess } from "../../helper/client.js"
-import businessContract from "../../model/BusinessContract.js"
 import { verifyToken, verifyCustomer, verifyAdmin, createBusinessDir } from "../../middleware/index.js"
 import { POSTOFFICE, uploadResources } from '../../constant.js'
 import { genaratePostOfficeCode } from "../../service/postOffice.js";
-
 import fs from 'fs'
 import PostOffice from "../../model/PostOffice.js";
 import PostOfficeCode from "../../model/PostOfficeCode.js";
+import Order from "../../model/Order.js";
 import mongoose from "mongoose"
 import { postOfficeValidate } from "../../validation/postOffice.js";
 
@@ -32,12 +31,12 @@ postOfficeAdminRoute.post("/", async (req, res) => {
         if (code == "") {
             return sendError(res, "Failed! Province or district is not valid");
         }
-            
+
         const postOffice = await PostOffice.create({
-            code : code,
-            name : name, 
-            province : province, 
-            district : district,
+            code: code,
+            name: name,
+            province: province,
+            district: district,
             address: address,
         });
 
@@ -65,13 +64,29 @@ postOfficeAdminRoute.get("/", async (req, res) => {
 })
 
 /**
+ * @route GET /api/admin/post-office/:code
+ * @description get postOffice
+ * @access public
+ */
+postOfficeAdminRoute.get("/:code", async (req, res) => {
+    try {
+        let { code } = req.params
+        var postOffices = await PostOffice.find({ code });
+        return sendSuccess(res, "Add postOffice successfully.", postOffices);
+    } catch (error) {
+        console.log(error);
+        return sendServerError(res);
+    }
+})
+
+/**
  * @route PATCH /api/admin/post-office/:id
  * @description get postOffice
  * @access public
  */
 postOfficeAdminRoute.patch("/:id", async (req, res) => {
     try {
-        let {id} = req.params;
+        let { id } = req.params;
 
         if (mongoose.isValidObjectId(id) == false) {
             return sendError(res, "Failed! Id params is not valid ObjectId");
@@ -79,7 +94,7 @@ postOfficeAdminRoute.patch("/:id", async (req, res) => {
 
         const _postOffice = await PostOffice.findById(id);
 
-        if (_postOffice == null || _postOffice == undefined){
+        if (_postOffice == null || _postOffice == undefined) {
             return sendError(res, "Failed! Post office is not exist");
         }
 
@@ -94,13 +109,14 @@ postOfficeAdminRoute.patch("/:id", async (req, res) => {
             return sendError(res, "Failed! Province or district is not valid");
         }
 
-        var postOffice = await PostOffice.findByIdAndUpdate(id, {   
-            code : code,
-            name : name, 
-            province : province, 
-            district : district,
-            address: address,});
-        
+        var postOffice = await PostOffice.findByIdAndUpdate(id, {
+            code: code,
+            name: name,
+            province: province,
+            district: district,
+            address: address,
+        });
+
         return sendSuccess(res, "Update postOffice successfully.", postOffice);
     } catch (error) {
         console.log(error);
@@ -115,7 +131,7 @@ postOfficeAdminRoute.patch("/:id", async (req, res) => {
  */
 postOfficeAdminRoute.delete("/:id", async (req, res) => {
     try {
-        let {id} = req.params;
+        let { id } = req.params;
 
         if (mongoose.isValidObjectId(id) == false) {
             return sendError(res, "Failed! Id params is not valid ObjectId");
@@ -123,7 +139,7 @@ postOfficeAdminRoute.delete("/:id", async (req, res) => {
 
         const _postOffice = PostOffice.findById(id);
 
-        if (_postOffice == null || _postOffice == undefined){
+        if (_postOffice == null || _postOffice == undefined) {
             return sendError(res, "Failed! Post office is not exist");
         }
 

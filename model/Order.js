@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import { ORDER_STATUS, PICK_UP_AT, CASH_PAYMENT, ISSUES_TYPE, COD_STATUS, PRODUCT_TYPE, SCAN_TYPE, TRANSPORTION_TYPE, PAYMENT_METHOD } from "../constant.js"
+import { ORDER_STATUS, PICK_UP_AT, CASH_PAYMENT, ISSUES_TYPE, COD_STATUS, PRODUCT_TYPE, SCAN_TYPE, TRANSPORTATION_TYPE, PAYMENT_METHOD } from "../constant.js"
 const { Schema } = mongoose;
 
 const OrderSchema = new Schema(
@@ -13,18 +13,6 @@ const OrderSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "customers",
             required: true
-        },
-        confirm_staff: {
-            type: Schema.Types.ObjectId,
-            ref: "staffs",
-        },
-        pickUp_staff: {
-            type: Schema.Types.ObjectId,
-            ref: "staffs",
-        },
-        delivery_staff: {
-            type: Schema.Types.ObjectId,
-            ref: "staffs",
         },
         sender: {
             type: {
@@ -85,29 +73,32 @@ const OrderSchema = new Schema(
         ],
         tracking: [{
             type: {
-                types: {
+                scan_type: {
                     type: String,
                     enum: Object.values(SCAN_TYPE),
                     required: true,
                 },
-                staff_scan: {
+                confirm_staff: {
                     type: Schema.Types.ObjectId,
-                    ref: "users",
-                    required: true,
+                    ref: "staffs",
+                },
+                driver: {
+                    type: Schema.Types.ObjectId,
+                    ref: "staffs",
+                },
+                shipper: {
+                    type: Schema.Types.ObjectId,
+                    ref: "staffs",
                 },
                 scan_code_time: {
                     type: String,
                     required: true,
                 },
-                transportion: {
+                transportation: {
                     type: String,
-                    enum: Object.values(TRANSPORTION_TYPE),
+                    enum: Object.values(TRANSPORTATION_TYPE),
                 },
-                post_office_sending: {
-                    type: Schema.Types.ObjectId,
-                    ref: "post_office"
-                },
-                warehouse_sending: {
+                warehouse: {
                     type: Schema.Types.ObjectId,
                     ref: "warehouses"
                 },
@@ -126,10 +117,6 @@ const OrderSchema = new Schema(
             },
             { timestamps: true }
         ],
-        isIssues: {
-            type: String,
-            enum: Object.values(ISSUES_TYPE)
-        },
         cod: {
             type: {
                 timeline: [{
@@ -144,7 +131,6 @@ const OrderSchema = new Schema(
                         default: Date.now()
                     }
                 }],
-                
                 cod: {
                     type: String,
                     default: 0

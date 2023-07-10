@@ -5,13 +5,12 @@ import cors from "cors"
 import YAML from 'yamljs'
 import { Server } from 'socket.io'
 import bodyParser from 'body-parser'
-import { sendMailToCafllet, sendMailToDriver } from "./service/notification.js"
+// import { sendMailToCafllet, sendMailToDriver } from "./service/notification.js"
 import session from "express-session"
 // import path from "path"
 // const __dirname = path.resolve(path.dirname(''))
 import authRoute from "./router/auth.js"
 import adminRoute from "./router/admin/index.js"
-import trackingRoute from "./router/tracking.js"
 import orderRoute from "./router/order.js"
 import aboutRoute from "./router/about.js"
 import publicRoute from "./router/public.js"
@@ -29,13 +28,12 @@ import participantRoute from "./router/participant.js"
 import receiverRoute from "./router/receiver.js"
 import productRoute from "./router/product.js"
 import featureRoute from "./router/feature.js"
-import distanceRoute from "./router/distance.js"
 import priceRoute from "./router/price.js"
 import priceListRoute from "./router/pricelist.js"
 import serviceRoute from "./router/service.js"
 import customerRoute from "./router/customer.js"
 import turnoverRoute from "./router/turnover.js"
-import billRoute from "./router/bill.js"
+// import billRoute from "./router/bill.js"
 import carriageContractRoute from "./router/carriageContract.js"
 import blogRoute from "./router/blog.js"
 import bookingRoute from "./router/booking.js"
@@ -128,7 +126,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
     .use('/api/public', publicRoute)
     .use('/api/admin', verifyToken, verifyAdmin, adminRoute)
     .use('/api/auth', authRoute)
-    .use('/api/tracking', trackingRoute)
     .use('/api/order', orderRoute)
     .use('/api/about', aboutRoute)
     .use('/api/contactus', contactUsRoute)
@@ -148,7 +145,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
     .use('/api/notification', verifyToken, notificationRoute)
     .use('/api/receiver', receiverRoute)
     .use('/api/product', productRoute)
-    .use('/api/distance', distanceRoute)
+
     .use('/api/price', priceRoute)
     .use('/api/pricelist', priceListRoute)
     .use('/api/service', serviceRoute)
@@ -157,7 +154,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
     .use('/api/suggest', suggestRoute)
     .use('/api/address', addressRoute)
     .use('/api/turnover', turnoverRoute)
-    .use('/api/bill', billRoute)
+    // .use('/api/bill', billRoute)
     .use("/api/carriageContract", carriageContractRoute)
     .use('/api/blog', blogRoute)
     .use('/api/booking', bookingRoute)
@@ -218,12 +215,12 @@ io.on(NOTIFY_EVENT.connection, socket => {
 app.listen(PORT, () => {
     console.log(`Server start at port: ${PORT}`)
 })
-app.listen(() => {
-    sendMailToCafllet()
-})
-app.listen(() => {
-    sendMailToDriver()
-})
+// app.listen(() => {
+//     sendMailToCafllet()
+// })
+// app.listen(() => {
+//     sendMailToDriver()
+// })
 setInterval(() => {
     clearTokenList(TOKEN_BLACKLIST)
 }, 3600000)

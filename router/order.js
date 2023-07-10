@@ -1,17 +1,12 @@
 import express from "express"
 import { sendError, sendServerError, sendSuccess } from "../helper/client.js"
-import { createOrderValidate, updateOrderValidate } from "../validation/order.js"
-import { locateAddress } from "../service/location.js"
+import { updateOrderValidate } from "../validation/order.js"
 import { verifyToken, verifyCustomer, verifyCustomerOrAdmin, verifyStaff } from "../middleware/index.js"
-import { genarateOrderID, genarateBillofLandingID, handleOrderInfo, handleOrderInfoWithCost } from "../service/order.js"
-import DeliveryService from "../model/DeliveryService.js"
+import { genarateOrderID, genarateBillofLandingID } from "../service/order.js"
 import Order from "../model/Order.js"
-import Product from "../model/Product.js"
-import Warehouse from "../model/Warehouse.js"
 import User from "../model/User.js"
 import Customer from "../model/Customer.js"
-import { COD_STATUS, ORDER_STATUS , SCAN_TYPE } from "../constant.js"
-import { isServedByService } from "../service/deliveryService.js"
+import { COD_STATUS, ORDER_STATUS, SCAN_TYPE } from "../constant.js"
 import { sendFeedback, sendtokenfeedbacktoCustomer } from "../service/order.js"
 
 const orderRoute = express.Router();
@@ -101,8 +96,8 @@ orderRoute.get("/customer", verifyToken, verifyCustomer, async (req, res) => {
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate + "T23:59:59");
     if (startDate == 'Invalid Date' || endDate == 'Invalid Date') {
-         return sendError(res, "Invalid Date")
-      }
+      return sendError(res, "Invalid Date")
+    }
     let query = {}
     if (keyword) {
       query.$or = [
@@ -120,7 +115,7 @@ orderRoute.get("/customer", verifyToken, verifyCustomer, async (req, res) => {
       query.status = status
     }
     if (startDate && endDate) {
-      query.createdAt = { $gte: startDate, $lte: endDate  }
+      query.createdAt = { $gte: startDate, $lte: endDate }
     }
     const returnedOrders = await Order.find(query)
       .limit(pageSize)
@@ -302,9 +297,9 @@ orderRoute.get("/finance/:startDate/:endDate", verifyToken, verifyCustomer, asyn
     const customerID = req.user.role._id;
     const startDate = new Date(req.params.startDate);
     const endDate = new Date(req.params.endDate + "T23:59:59");
-     if (startDate == 'Invalid Date' || endDate == 'Invalid Date') {
-    return sendError(res, "Invalid Date")
-  }
+    if (startDate == 'Invalid Date' || endDate == 'Invalid Date') {
+      return sendError(res, "Invalid Date")
+    }
 
     const orderWaiting = { amount: 0, codFee: 0, shipFee: 0, percent: 0 };
     const orderInProgress = { amount: 0, codFee: 0, shipFee: 0, percent: 0 };
@@ -435,10 +430,10 @@ orderRoute.get("/COD/:startDate/:endDate", verifyToken, verifyCustomer, async (r
       createdAt: { $gte: startDate, $lte: endDate }
     })
     order.forEach(order => {
-      if ( order.cod.timeline.slice(-1).status === COD_STATUS.collected_cashier ){
+      if (order.cod.timeline.slice(-1).status === COD_STATUS.collected_cashier) {
         collectedCOD += +order.cod.cod
         collectedShipping += +order.shipping.total_fee
-      } else if ( order.cod.timeline.slice(-1).status === COD_STATUS.waiting ) {
+      } else if (order.cod.timeline.slice(-1).status === COD_STATUS.waiting) {
         waitingCOD += +order.cod.cod
         waitingShipping += +order.shipping.total_fee
       }
@@ -472,7 +467,7 @@ orderRoute.get("/endCOD/:startDate/:endDate", verifyToken, verifyCustomer, async
       updatedAt: { $gte: startDate, $lte: endDate }
     })
     order.forEach(order => {
-      if ( order.cod.timeline.slice(-1) === COD_STATUS.paid ) {
+      if (order.cod.timeline.slice(-1) === COD_STATUS.paid) {
         paidCOD += +order.cod.cod
         fee += +order.cod.fee
         controlMoney += +order.cod.control_money

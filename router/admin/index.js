@@ -9,9 +9,7 @@ import partnerAdminRoute from "./partner.js"
 import contactMsgAdminRoute from "./contactMsg.js"
 import userAdminRoute from "./user.js"
 import carAdminRoute from "./car.js"
-import roadAdminRoute from "./road.js"
-import billAdminRoute from "./bill.js"
-import productShipmentAdminRoute from "./productShipment.js"
+// import billAdminRoute from "./bill.js"
 import prohibitedProductAdminRoute from "./prohibitedProduct.js"
 import consultancyAdminRoute from "./consultancy.js"
 import participantAdminRoute from "./participant.js"
@@ -23,7 +21,6 @@ import departmentAdminRoute from "./department.js"
 import staffAdminRoute from "./staff.js"
 import productAdminRoute from "./product.js"
 import featureAdminRoute from "./feature.js"
-import distanceAdminRoute from "./distance.js"
 import priceAdminRoute from "./price.js"
 import pricelistAdminRoute from "./pricelist.js"
 import customerAdminRoute from "./customer.js"
@@ -69,9 +66,7 @@ adminRoute.use('/auth', authAdminRoute)
     .use('/message', contactMsgAdminRoute)
     .use('/user', userAdminRoute)
     .use('/car', carAdminRoute)
-    .use('/road', roadAdminRoute)
-    .use('/bill', billAdminRoute)
-    .use('/product-shipment', productShipmentAdminRoute)
+    // .use('/bill', billAdminRoute)
     .use('/prohibited-product', prohibitedProductAdminRoute)
     .use('/consultancy', consultancyAdminRoute)
     .use('/participant', participantAdminRoute)
@@ -83,7 +78,6 @@ adminRoute.use('/auth', authAdminRoute)
     .use("/staff", staffAdminRoute)
     .use("/product", productAdminRoute)
     .use("/feature", featureAdminRoute)
-    .use('/distance', distanceAdminRoute)
     .use('/price', priceAdminRoute)
     .use('/pricelist', pricelistAdminRoute)
     .use("/customer", customerAdminRoute)

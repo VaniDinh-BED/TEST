@@ -96,7 +96,6 @@ export const PRODUCT_UNIT = {
     TON: 'ton',
     M3: 'm3'
 }
-
 export const RETURN_ZONE = {
     A: 'A', // 'provincial'
     B: 'B', // '<100Km'
@@ -302,8 +301,10 @@ export const DAY_OF_WEEK = {
 export const FUEL_FEE = 52033
 export const SCAN_TYPE = {
     RECIVED_ORDER: 'recived_order',// nhận hàng
-    SENDING: 'sending', // gửi hàng
-    INCOMING: 'incoming', // hàng đến
+    SENDING_POSTOFFICE: 'sending_postoffice', // gửi hàng
+    INCOMING_POSTOFFICE: 'incoming_postoffice', // hàng đến
+    SENDING_WAREHOUSE: 'sending_warehouse', // gửi hàng
+    INCOMING_WAREHOUSE: 'incoming_warehouse', // hàng đến
     SHIPPING: 'shipping', // phát hàng
     UNUSUAL_ORDER: 'unusual_order', // hàng bất thường
     PACKAGING: 'packaging', // đóng bao
@@ -326,10 +327,11 @@ export const COD_STATUS = {
     paid: "paid"
 }
 
-export const TRANSPORTION_TYPE = {
+export const TRANSPORTATION_TYPE = {
     TRUCK: 'truck',
     BOAT: 'boat',
     PLANE: 'plane',
+    MOTORBIKE : 'motorbike',
 }
 
 

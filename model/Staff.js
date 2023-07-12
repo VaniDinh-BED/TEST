@@ -39,7 +39,16 @@ const StaffSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'car_fleets',
             default: null
-        }
+        },
+        office: {
+            type: Schema.Types.ObjectId,
+            ref: 'PostOffice',
+            default: null
+        },
+        loginAttempts:{
+            type: Number,
+            default:0,
+        },
     },
     { timestamps: true }
 )

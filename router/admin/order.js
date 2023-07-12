@@ -1,4 +1,4 @@
-import express from "express"
+import express, { request } from "express"
 import { sendError, sendServerError, sendSuccess, } from "../../helper/client.js"
 import { updateOrderStatusValidate, updateOrderTrackingValidate } from "../../validation/order.js"
 import { canChangeOrderStatus, genarateOrderID, genarateBillofLandingID, getOrderWithFilters } from "../../service/order.js"
@@ -354,28 +354,62 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
 
     const staffId = req.user.role._id;
 
-    const scan_body = {
-      ...req.body,
+    let scan_body = {
+      scan_type : req.body.scan_type,
+      scan_code_time : req.body.scan_code_time,
       confirm_staff : staffId,
     }
 
-    /* scan_body format after validation above
-        scan_type :  requried  
-        scan_code_time : requried
-        confirm_staff : requried
+    let post_office = null;
 
-        transportation : only SCAN_TYPE.RECIVED_ORDER not requried 
+    switch(req.body.scan_type) {
+        case  SCAN_TYPE.RECIVED_ORDER:
+            post_office = req.body.post_office;
+            break;
+        case SCAN_TYPE.SENDING_POSTOFFICE:
+            post_office = req.body.post_office;
+            scan_body = {
+              ...scan_body,
+              driver : req.body.driver,
+              transportation : req.body.transportation,
+            }            
+            break;
+        case  SCAN_TYPE.INCOMING_POSTOFFICE:
+            post_office = req.body.post_office;
+            scan_body = {
+              ...scan_body,
+              driver : req.body.driver,
+              transportation : req.body.transportation,
+            }
+            break;
+        case  SCAN_TYPE.SENDING_WAREHOUSE:
+            scan_body = {
+                ...scan_body,
+                warehouse : req.body.warehouse,
+                driver : req.body.driver,
+                transportation : req.body.transportation,
+            }
+            break;
+        case  SCAN_TYPE.INCOMING_WAREHOUSE:
+            scan_body = {
+                ...scan_body,
+                warehouse : req.body.warehouse,
+                driver : req.body.driver,
+                transportation : req.body.transportation,
+            }
+            break;
+        case  SCAN_TYPE.SHIPPING:
+            post_office = req.body.post_office;
+            scan_body = {
+              ...scan_body,
+              shipper : req.body.shipper,
+              transportation : req.body.transportation,
+            }
+            break;
+        default:
+          // code block
+    }
 
-        driver : requried when scan_type = 
-              SCAN_TYPE.SENDING_POSTOFFICE/SCAN_TYPE.RECEIVING_POSTOFFICE
-              SCAN_TYPE.SENDING_WAREHOUSE/SCAN_TYPE.RECEIVING_WAREHOUSE
-              
-        warehouse : requried when scan_type = 
-              SCAN_TYPE.SENDING_WAREHOUSE/SCAN_TYPE.RECEIVING_WAREHOUSE
-
-        shipper : requried when scan_type = SCAN_TYPE.SENDING_POSTOFFICE
-    */
-    
 
     const { orderId } = req.params;
 
@@ -405,8 +439,27 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
       }
     }
     
-    await Order.findOneAndUpdate({orderId}, {tracking : order.tracking});
+    let updateValue = {
+      tracking : order.tracking
+    }
 
+    if (post_office != null){
+      if (req.body.scan_type == SCAN_TYPE.SENDING_POSTOFFICE){
+        updateValue = {
+          ...updateValue,
+          origin : post_office,
+        }
+      }
+      else {  
+        updateValue = {
+          ...updateValue,
+          destination : post_office,
+        }
+      }
+    }
+
+    await Order.findOneAndUpdate({orderId}, updateValue);
+  
     return sendSuccess(
       res, "successfully.", order
     )

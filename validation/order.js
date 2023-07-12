@@ -51,20 +51,24 @@ export const updateOrderTrackingValidate = (data) => {
   .isRequired(data.scan_code_time, "scan_code_time")
 
   switch(data.scan_type) {
-    case  SCAN_TYPE.RECIVED_ORDER:           
+    case  SCAN_TYPE.RECIVED_ORDER:
+        error
+          .isRequired(data.post_office  , "post_office");         
         break;
     
     case SCAN_TYPE.SENDING_POSTOFFICE:
         error
           .isRequired(data.driver  , "driver")
           .isRequired(data.transportation, "transportation")
-          .isInRangeName(data.transportation, TRANSPORTATION_TYPE, "transportation")             
+          .isInRangeName(data.transportation, TRANSPORTATION_TYPE, "transportation")
+          .isRequired(data.post_office  , "post_office");              
         break;
     case  SCAN_TYPE.INCOMING_POSTOFFICE:
         error
           .isRequired(data.driver  , "driver")    
           .isRequired(data.transportation, "transportation")
           .isInRangeName(data.transportation, TRANSPORTATION_TYPE, "transportation")
+          .isRequired(data.post_office  , "post_office");    
         break;
     case  SCAN_TYPE.SENDING_WAREHOUSE:
         error
@@ -85,6 +89,7 @@ export const updateOrderTrackingValidate = (data) => {
           .isRequired(data.shipper, "shipper")
           .isRequired(data.transportation, "transportation")
           .isInRangeName(data.transportation, TRANSPORTATION_TYPE, "transportation")
+          .isRequired(data.post_office  , "post_office");  
         break;
     default:
       // code block

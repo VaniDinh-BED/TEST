@@ -52,7 +52,7 @@ import orderNotificationRoute from "./router/orderNotification.js"
 
 // swagger setup
 import swaggerUi from 'swagger-ui-express'
-import { verifyAdmin, verifyToken } from "./middleware/index.js"
+import { verifyAdmin, verifyShipper, verifyToken } from "./middleware/index.js"
 import userRoute from "./router/user.js"
 import prohibitedProductRoute from "./router/prohibitedProduct.js"
 import { clearTokenList } from "./service/jwt.js"
@@ -67,6 +67,7 @@ import addressRoute from "./router/address.js"
 import faqRoute from "./router/faq.js"
 import compareReviewRoute from "./router/compareReview.js"
 import policyRoute from "./router/policy.js"
+import shipperRoute from "./router/shipper/index.js"
 
 
 // swagger setup
@@ -180,6 +181,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
     .use('/api/faq', faqRoute)
     .use('/api/compare-review', compareReviewRoute)
     .use('/api/policy', policyRoute)
+    .use('/api/shipper', shipperRoute)
 
 app.use('/*', async (req, res) => {
     res.status(501).send("Don't implement.")

@@ -243,3 +243,8 @@ export const verifyDriver = async (req, res, next) => {
         return sendError(res, 'Forbidden.', 403)
     next()
 }
+export const verifyShipper = async (req, res, next) => {
+    if (req.user.role.staff_type !== 'shipper')
+        return sendError(res, 'Forbidden.', 403)
+    next()
+}

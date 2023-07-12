@@ -2394,6 +2394,83 @@ paths:
               "success": false,
               "message": "your role is not valid. access denied.",
             }
+  /shipper/auth/login:
+    post:
+      tags:
+        - "auth"
+      summary: Shipper login with code Office, code employee and password.
+      produces:
+        - application/json
+      consumes:
+        - application/json
+        - multipart/form-data
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          type: object
+          properties:
+            codeOffice:
+              type: string
+            codeStaff:
+              type: string
+            password:
+              type: string
+      responses:
+        200:
+          description: Login successfully.
+          schema:
+            type: object
+            example: {
+              "success": true,
+              "message": "Login successfully.",
+              "data": {
+              "accessToken":"string",
+              "refreshToken":"string",
+              "user": {
+                "id":"string",
+                "name":"string",
+                "staff_type":"string",
+                "office":"string",
+                "addresss":"string",
+              }
+              },
+            }
+        400:
+          description: Bad request
+          schema:
+            type: object
+            example: {
+              "error1": {
+                "success": false,
+                "message": "Invalid office code.",
+              },
+              "error2": {
+                "success": false,
+                "message": "Invalid staff code.",
+              },
+              "error3": {
+                "success": false,
+                "message": "User not found.",
+              },
+              "error4": {
+                "success": false,
+                "message": "Account locked. Please contact the nearest post office.",
+              },
+              "error5": {
+                "success": false,
+                "message": "Account locked",
+              },
+              "error6": {
+                "success": false,
+                "message": "Invalid password",
+              },
+              "error7": {
+                "success": false,
+                "message": "Not a shipper",
+              }
+            }
   /auth/forgot-pw:
     post:
       tags:
@@ -6963,6 +7040,10 @@ paths:
                 type : string
                 description: time to action
                 example: "string"
+              post_office:
+                type : string
+                description: id of post_office
+                example: "string ; required when action in post office or scan_type = recived_order/shipper "
               warehouse:
                 type : string
                 description: id of warehouse

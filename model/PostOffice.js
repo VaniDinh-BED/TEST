@@ -32,12 +32,12 @@ const PostOfficeSchema = new Schema(
         timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true }
     }
 )
-PostOfficeSchema.virtual('inventory_number').get(async function () {
+// PostOfficeSchema.virtual('inventory_number').get(async function () {
 
-    let data = await Order.find({ tracking })
-    console.log("🚀 ~ file: PostOffice.js:37 ~ data:", data)
-    return data ? 'null' : "fail"
-})
+//     let data = await Order.find({ tracking })
+//     console.log("🚀 ~ file: PostOffice.js:37 ~ data:", data)
+//     return data ? 'null' : "fail"
+// })
 PostOfficeSchema.virtual('inventory_weight').get(() => {
     return Date.now()
 })

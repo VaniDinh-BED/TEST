@@ -7050,11 +7050,11 @@ paths:
                 example: "string ; required when action in warehouse"
               driver:
                 type : string
-                description: id of driver
+                description: id of staff, staff type = driver
                 example: "string ; required when action send/receive"
               shipper:
                 type : string
-                description: id of shipper
+                description: id of staff, staff type = shipper
                 example: "string ; required when scan_type = shipping"
       responses:
         200:

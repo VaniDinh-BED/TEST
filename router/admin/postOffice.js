@@ -80,6 +80,26 @@ postOfficeAdminRoute.get("/:code", async (req, res) => {
 })
 
 /**
+ * @route GET /api/admin/post-office/inventory/:postId
+ * @description get postOffice
+ * @access public
+ */
+postOfficeAdminRoute.get("/inventory/:postId", async (req, res) => {
+    try {
+        let { postId } = req.params
+        let exist = await PostOffice.exists({ _id: postId })
+        if (!exist) {
+            return sendError(res, "Post office not exist")
+        }
+        let postOffices = await Order.findOne({ destination: postId, status: { $in: ["dispatching", "in return"] } }).count()
+        return sendSuccess(res, "Add postOffice successfully.", { postOffices });
+    } catch (error) {
+        console.log(error);
+        return sendServerError(res);
+    }
+})
+
+/**
  * @route PATCH /api/admin/post-office/:id
  * @description get postOffice
  * @access public
@@ -137,7 +157,7 @@ postOfficeAdminRoute.delete("/:id", async (req, res) => {
             return sendError(res, "Failed! Id params is not valid ObjectId");
         }
 
-        const _postOffice = PostOffice.findById(id);
+        const _postOffice = await PostOffice.findById(id);
 
         if (_postOffice == null || _postOffice == undefined) {
             return sendError(res, "Failed! Post office is not exist");

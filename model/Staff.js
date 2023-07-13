@@ -10,7 +10,7 @@ const StaffSchema = new Schema(
         },
         code: {
             type: String,
-            required: true
+            // required: true
         },
         serial_number_of_the_shipping_manifest: {
             type: String,

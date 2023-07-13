@@ -5,13 +5,15 @@ import { canChangeOrderStatus, genarateOrderID, genarateBillofLandingID, getOrde
 import DeliveryService from "../../model/DeliveryService.js"
 import Order from "../../model/Order.js"
 import Product from "../../model/Product.js"
-import { CASH_PAYMENT, COD_STATUS, ORDER_STATUS } from "../../constant.js"
+import { CASH_PAYMENT, COD_STATUS, ORDER_STATUS, STAFF } from "../../constant.js"
 import CompareReview from "../../model/CompareReview.js"
 import { COMPARE_REVIEW_TYPE, SCAN_TYPE } from "../../constant.js"
 import { getDateWhenEditSchedule } from "../../service/compareReview.js"
 import { sendOrderMessageToCustomer } from "../../service/order.js"
 import { handleGroupOrderByDeliveryStaff } from "../../service/order.js"
 import Staff from "../../model/Staff.js"
+import PostOffice from "../../model/PostOffice.js"
+import Warehouse from "../../model/Warehouse.js"
 
 const orderAdminRoute = express.Router();
 
@@ -372,7 +374,7 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
               ...scan_body,
               driver : req.body.driver,
               transportation : req.body.transportation,
-            }            
+            }       
             break;
         case  SCAN_TYPE.INCOMING_POSTOFFICE:
             post_office = req.body.post_office;
@@ -410,6 +412,39 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
           // code block
     }
 
+    if (scan_body.hasOwnProperty('driver')){
+        const driver = await Staff.findById(scan_body.driver);
+        if (driver == null || driver == undefined) {
+          return sendError(res, "Staff does not exist.")
+        }
+        if (driver.staff_type != STAFF.DRIVER) {
+          return sendError(res, "Staff is not driver.",)
+        }
+    } 
+
+    if (scan_body.hasOwnProperty('shipper')){
+      const shipper = await Staff.findById(scan_body.shipper);
+      if (shipper == null || shipper == undefined) {
+        return sendError(res, "Staff does not exist.")
+      }
+      if (shipper.staff_type != STAFF.SHIPPER) {
+        return sendError(res, "Staff is not shipper.",)
+      }
+    }
+
+    if (post_office != null){
+      const postOffice = await PostOffice.findById(post_office);
+      if (postOffice == null || postOffice == undefined) {
+        return sendError(res, "Post office does not exist.")
+      }
+    }
+
+    if (scan_body.hasOwnProperty('warehouse')){
+      const warehouse = await Warehouse.findById(scan_body.warehouse);
+      if (warehouse == null || warehouse == undefined) {
+        return sendError(res, "Warehouse does not exist.")
+      }
+    }
 
     const { orderId } = req.params;
 

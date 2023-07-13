@@ -14,6 +14,7 @@ import { handleGroupOrderByDeliveryStaff } from "../../service/order.js"
 import Staff from "../../model/Staff.js"
 import PostOffice from "../../model/PostOffice.js"
 import Warehouse from "../../model/Warehouse.js"
+import mongoose from "mongoose"
 
 const orderAdminRoute = express.Router();
 
@@ -413,6 +414,9 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
     }
 
     if (scan_body.hasOwnProperty('driver')){
+        if (mongoose.isValidObjectId(scan_body.driver) == false) {
+          return sendError(res, "driver is not valid ObjectId");
+        }
         const driver = await Staff.findById(scan_body.driver);
         if (driver == null || driver == undefined) {
           return sendError(res, "Staff does not exist.")
@@ -423,6 +427,9 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
     } 
 
     if (scan_body.hasOwnProperty('shipper')){
+      if (mongoose.isValidObjectId(scan_body.shipper) == false) {
+        return sendError(res, "shipper is not valid ObjectId");
+      }
       const shipper = await Staff.findById(scan_body.shipper);
       if (shipper == null || shipper == undefined) {
         return sendError(res, "Staff does not exist.")
@@ -433,6 +440,9 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
     }
 
     if (post_office != null){
+      if (mongoose.isValidObjectId(post_office) == false) {
+        return sendError(res, "post_office is not valid ObjectId");
+      }
       const postOffice = await PostOffice.findById(post_office);
       if (postOffice == null || postOffice == undefined) {
         return sendError(res, "Post office does not exist.")
@@ -440,6 +450,9 @@ orderAdminRoute.patch("/tracking/scan/:orderId", async (req, res) => {
     }
 
     if (scan_body.hasOwnProperty('warehouse')){
+      if (mongoose.isValidObjectId(scan_body.warehouse) == false) {
+        return sendError(res, "warehouse is not valid ObjectId");
+      }
       const warehouse = await Warehouse.findById(scan_body.warehouse);
       if (warehouse == null || warehouse == undefined) {
         return sendError(res, "Warehouse does not exist.")

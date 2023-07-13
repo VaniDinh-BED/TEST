@@ -32,20 +32,5 @@ const PostOfficeSchema = new Schema(
         timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true }
     }
 )
-// PostOfficeSchema.virtual('inventory_number').get(async function () {
-
-//     let data = await Order.find({ tracking })
-//     console.log("🚀 ~ file: PostOffice.js:37 ~ data:", data)
-//     return data ? 'null' : "fail"
-// })
-PostOfficeSchema.virtual('inventory_weight').get(() => {
-    return Date.now()
-})
-PostOfficeSchema.virtual('inventory_carrying_cost').get(() => {
-    return Date.now()
-})
-PostOfficeSchema.virtual('inventory_COD').get(() => {
-    return Date.now()
-})
 
 export default mongoose.model('post_office', PostOfficeSchema)

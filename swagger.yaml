@@ -14886,6 +14886,23 @@ paths:
               }
         security:
           - bearerAuth: []
+  /admin/post-office/inventory/{postId}:
+    get:
+        tags:
+          - "post-office"
+        summary: admin get inventory post office
+        consumes:
+          - application/json
+        parameters:
+        - in: path
+          name: id
+        responses:
+          200:
+            description: Get post office inventory successfully
+            schema:
+              type: object
+        security:
+          - bearerAuth: []
   /admin/post-office/{id}:
     patch:
         tags:

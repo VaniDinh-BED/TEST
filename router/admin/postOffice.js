@@ -91,8 +91,15 @@ postOfficeAdminRoute.get("/inventory/:postId", async (req, res) => {
         if (!exist) {
             return sendError(res, "Post office not exist")
         }
-        let postOffices = await Order.findOne({ destination: postId, status: { $in: ["dispatching", "in return"] } }).count()
-        return sendSuccess(res, "Add postOffice successfully.", { postOffices });
+        let orderLength = await Order.find({ destination: postId, status: { $in: ["dispatching", "in return"] } }).count()
+        let order = await Order.find({ destination: postId, status: { $in: ["dispatching", "in return"] } })
+        let inventory_weight = 0, inventory_carrying_cost = 0, inventory_COD = 0
+        await order.forEach(order => {
+            inventory_weight += +order.product.weight,
+                inventory_carrying_cost += +order.shipping.total_amount_after_tax_and_discount,
+                inventory_COD += +order.cod.cod
+        })
+        return sendSuccess(res, "Add postOffice successfully.", { inventory_number: orderLength, inventory_weight: inventory_weight, inventory_carrying_cost: inventory_carrying_cost, inventory_COD: inventory_COD });
     } catch (error) {
         console.log(error);
         return sendServerError(res);
